@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오늘 저녁 뽑기</title>
+  <style>
+    :root {
+      --ink: #1e252b;
+      --muted: #66717b;
+      --line: #d7dde3;
+      --paper: #fbfaf7;
+      --mint: #52b69a;
+      --tomato: #f07167;
+      --gold: #f9c74f;
+      --blue: #577590;
+      --cream: #fff8e8;
+      --shadow: 0 24px 60px rgba(26, 37, 47, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background:
+        radial-gradient(circle at 12% 18%, rgba(249, 199, 79, 0.2), transparent 26%),
+        linear-gradient(135deg, #f7f4eb 0%, #e8f2ef 48%, #f8ede8 100%);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      width: min(1180px, calc(100% - 32px));
+      min-height: 100vh;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(330px, 1fr) minmax(320px, 420px);
+      gap: 34px;
+      align-items: center;
+      padding: 30px 0;
+    }
+
+    .machine-zone {
+      min-width: 0;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 5rem);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    .date-chip {
+      flex: 0 0 auto;
+      padding: 9px 13px;
+      border: 1px solid rgba(30, 37, 43, 0.18);
+      border-radius: 999px;
+      color: var(--blue);
+      background: rgba(255, 255, 255, 0.55);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .machine-wrap {
+      display: grid;
+      grid-template-columns: 1fr 92px;
+      align-items: end;
+      gap: 14px;
+      filter: drop-shadow(0 26px 28px rgba(30, 37, 43, 0.18));
+    }
+
+    .machine {
+      position: relative;
+      min-height: 610px;
+      border: 5px solid var(--ink);
+      border-radius: 28px 28px 18px 18px;
+      background: linear-gradient(#fdfcf7, #f5efe0);
+      overflow: hidden;
+    }
+
+    .machine::before {
+      content: "";
+      position: absolute;
+      inset: 18px 18px auto;
+      height: 38px;
+      border-radius: 999px;
+      background: repeating-linear-gradient(90deg, var(--tomato) 0 34px, var(--cream) 34px 68px);
+      border: 3px solid var(--ink);
+    }
+
+    .sign {
+      position: absolute;
+      left: 36px;
+      right: 36px;
+      top: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 66px;
+      padding: 10px 18px;
+      border: 4px solid var(--ink);
+      border-radius: 16px;
+      background: var(--gold);
+      box-shadow: inset 0 -7px rgba(0, 0, 0, 0.08);
+      font-size: clamp(1.4rem, 3vw, 2.35rem);
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .window {
+      position: absolute;
+      left: 40px;
+      right: 40px;
+      top: 166px;
+      height: 268px;
+      border: 5px solid var(--ink);
+      border-radius: 24px;
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.2)),
+        linear-gradient(160deg, #c7f0ee, #f7fbff 72%);
+      overflow: hidden;
+    }
+
+    .glass-shine {
+      position: absolute;
+      width: 80px;
+      height: 360px;
+      top: -70px;
+      left: 18%;
+      transform: rotate(20deg);
+      background: rgba(255, 255, 255, 0.42);
+      pointer-events: none;
+    }
+
+    .capsules {
+      position: absolute;
+      inset: 0;
+    }
+
+    .capsule {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      width: 82px;
+      height: 82px;
+      border: 4px solid var(--ink);
+      border-radius: 50%;
+      background: linear-gradient(180deg, var(--cap-a) 0 48%, rgba(255, 255, 255, 0.75) 48% 52%, var(--cap-b) 52% 100%);
+      box-shadow: inset -8px -10px rgba(0, 0, 0, 0.08);
+      color: var(--ink);
+      font-size: 1.9rem;
+      transform: translate(var(--x), var(--y)) rotate(var(--r));
+      transition: transform 0.2s ease;
+    }
+
+    .capsule:nth-child(1) { --x: 7%; --y: 22px; --r: -16deg; --cap-a: #f07167; --cap-b: #ffd166; }
+    .capsule:nth-child(2) { --x: 35%; --y: 38px; --r: 11deg; --cap-a: #52b69a; --cap-b: #fefae0; }
+    .capsule:nth-child(3) { --x: 66%; --y: 18px; --r: 21deg; --cap-a: #577590; --cap-b: #f9c74f; }
+    .capsule:nth-child(4) { --x: 18%; --y: 142px; --r: 8deg; --cap-a: #90be6d; --cap-b: #fff1e6; }
+    .capsule:nth-child(5) { --x: 50%; --y: 132px; --r: -18deg; --cap-a: #f9844a; --cap-b: #caffbf; }
+    .capsule:nth-child(6) { --x: 74%; --y: 140px; --r: 12deg; --cap-a: #43aa8b; --cap-b: #ffd6a5; }
+
+    .machine.shaking .capsule {
+      animation: rattle 0.26s linear infinite;
+    }
+
+    .dial {
+      position: absolute;
+      left: 50%;
+      top: 463px;
+      width: 128px;
+      height: 128px;
+      display: grid;
+      place-items: center;
+      border: 5px solid var(--ink);
+      border-radius: 50%;
+      background: #f8f2e6;
+      transform: translateX(-50%);
+      box-shadow: inset 0 -12px rgba(0, 0, 0, 0.1);
+    }
+
+    .dial::before {
+      content: "";
+      width: 62px;
+      height: 62px;
+      border: 5px solid var(--ink);
+      border-radius: 50%;
+      background: var(--tomato);
+      box-shadow: inset 0 -8px rgba(0, 0, 0, 0.12);
+    }
+
+    .door {
+      position: absolute;
+      left: 58px;
+      right: 58px;
+      bottom: 24px;
+      height: 72px;
+      border: 5px solid var(--ink);
+      border-radius: 15px;
+      background: #dfe8ea;
+      overflow: hidden;
+    }
+
+    .door::after {
+      content: "";
+      position: absolute;
+      inset: 17px 28px;
+      border-radius: 999px;
+      background: rgba(30, 37, 43, 0.17);
+    }
+
+    .prize {
+      position: absolute;
+      left: 50%;
+      bottom: 34px;
+      width: min(300px, calc(100% - 80px));
+      min-height: 62px;
+      display: grid;
+      place-items: center;
+      padding: 10px 18px;
+      border: 4px solid var(--ink);
+      border-radius: 999px;
+      background: #fff;
+      box-shadow: var(--shadow);
+      font-size: clamp(1.2rem, 3vw, 1.7rem);
+      font-weight: 900;
+      text-align: center;
+      transform: translate(-50%, 145%);
+      transition: transform 0.55s cubic-bezier(.2, .9, .2, 1.1);
+      z-index: 3;
+    }
+
+    .prize.show {
+      transform: translate(-50%, 0);
+    }
+
+    .lever-panel {
+      display: grid;
+      justify-items: center;
+      gap: 14px;
+      padding-bottom: 58px;
+    }
+
+    .lever-slot {
+      width: 44px;
+      height: 224px;
+      border: 5px solid var(--ink);
+      border-radius: 999px;
+      background: #dbe6e8;
+      position: relative;
+      box-shadow: inset 0 8px rgba(255, 255, 255, 0.75);
+    }
+
+    .lever {
+      position: absolute;
+      left: 50%;
+      top: 18px;
+      width: 24px;
+      height: 126px;
+      border: 4px solid var(--ink);
+      border-radius: 999px;
+      background: var(--blue);
+      transform: translateX(-50%);
+      transform-origin: center top;
+      transition: top 0.22s ease;
+    }
+
+    .lever::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -38px;
+      width: 68px;
+      height: 68px;
+      border: 5px solid var(--ink);
+      border-radius: 50%;
+      background: var(--tomato);
+      transform: translateX(-50%);
+      box-shadow: inset -8px -10px rgba(0, 0, 0, 0.12);
+    }
+
+    .lever.pulled {
+      top: 70px;
+    }
+
+    .draw-button {
+      width: 82px;
+      height: 82px;
+      display: grid;
+      place-items: center;
+      border: 5px solid var(--ink);
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 9px 0 #ba8128;
+      cursor: pointer;
+      font-size: 2rem;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .draw-button:active,
+    .draw-button.running {
+      transform: translateY(7px);
+      box-shadow: 0 2px 0 #ba8128;
+    }
+
+    .panel {
+      align-self: stretch;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .control-box {
+      border: 2px solid rgba(30, 37, 43, 0.14);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.62);
+      box-shadow: 0 16px 42px rgba(30, 37, 43, 0.1);
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .result-box {
+      min-height: 130px;
+      display: grid;
+      align-content: center;
+      gap: 9px;
+      border-color: rgba(240, 113, 103, 0.5);
+      background: rgba(255, 248, 232, 0.78);
+    }
+
+    .eyebrow {
+      margin: 0;
+      color: var(--muted);
+      font-weight: 800;
+      font-size: 0.86rem;
+    }
+
+    .result {
+      margin: 0;
+      font-size: clamp(1.8rem, 5vw, 3.1rem);
+      line-height: 1.05;
+      font-weight: 950;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    .subtext {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .add-row {
+      display: grid;
+      grid-template-columns: 1fr 48px;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .food-input {
+      min-width: 0;
+      height: 48px;
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      padding: 0 13px;
+      background: #fff;
+      color: var(--ink);
+      outline: none;
+    }
+
+    .food-input:focus {
+      border-color: var(--mint);
+      box-shadow: 0 0 0 4px rgba(82, 182, 154, 0.16);
+    }
+
+    .icon-button {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 8px;
+      background: var(--ink);
+      color: #fff;
+      cursor: pointer;
+      font-size: 1.45rem;
+      font-weight: 900;
+    }
+
+    .food-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 15px;
+      max-height: 168px;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .food-chip {
+      display: inline-flex;
+      align-items: center;
+      max-width: 100%;
+      min-height: 36px;
+      border: 1px solid rgba(30, 37, 43, 0.15);
+      border-radius: 999px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .food-chip span {
+      padding: 7px 3px 7px 12px;
+      font-weight: 800;
+      word-break: keep-all;
+      overflow-wrap: anywhere;
+    }
+
+    .remove {
+      width: 34px;
+      height: 34px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    .quick-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 9px;
+      margin-top: 15px;
+    }
+
+    .quick-button {
+      min-height: 42px;
+      border: 2px solid rgba(30, 37, 43, 0.12);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      font-weight: 850;
+    }
+
+    .quick-button:hover,
+    .icon-button:hover,
+    .draw-button:hover {
+      filter: brightness(0.98);
+    }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    @keyframes rattle {
+      0% { margin-left: 0; margin-top: 0; }
+      25% { margin-left: 7px; margin-top: -5px; }
+      50% { margin-left: -4px; margin-top: 5px; }
+      75% { margin-left: 5px; margin-top: 3px; }
+      100% { margin-left: 0; margin-top: 0; }
+    }
+
+    @media (max-width: 880px) {
+      .app {
+        grid-template-columns: 1fr;
+        align-items: start;
+        padding: 20px 0 28px;
+      }
+
+      .machine {
+        min-height: 560px;
+      }
+
+      .window {
+        left: 26px;
+        right: 26px;
+        height: 240px;
+      }
+
+      .dial {
+        top: 430px;
+        width: 112px;
+        height: 112px;
+      }
+
+      .machine-wrap {
+        grid-template-columns: 1fr 74px;
+      }
+
+      .lever-slot {
+        height: 196px;
+      }
+
+      .lever {
+        height: 110px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .app {
+        width: min(100% - 20px, 460px);
+        gap: 22px;
+      }
+
+      .title-row {
+        align-items: start;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .machine-wrap {
+        grid-template-columns: 1fr;
+      }
+
+      .lever-panel {
+        grid-template-columns: 1fr 82px;
+        justify-items: start;
+        align-items: center;
+        padding: 0 8px;
+      }
+
+      .lever-slot {
+        width: 100%;
+        height: 44px;
+      }
+
+      .lever {
+        left: 15%;
+        top: 50%;
+        width: 116px;
+        height: 24px;
+        transform: translateY(-50%);
+      }
+
+      .lever::after {
+        left: auto;
+        right: -38px;
+        bottom: 50%;
+        transform: translateY(50%);
+      }
+
+      .lever.pulled {
+        top: 50%;
+        left: 46%;
+      }
+
+      .capsule {
+        width: 70px;
+        height: 70px;
+        font-size: 1.55rem;
+      }
+
+      .sign {
+        left: 24px;
+        right: 24px;
+      }
+
+      .quick-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="machine-zone" aria-label="저녁 메뉴 뽑기 기계">
+      <div class="title-row">
+        <h1>오늘 저녁<br>뽑기</h1>
+        <div class="date-chip" id="dateChip"></div>
+      </div>
+
+      <div class="machine-wrap">
+        <div class="machine" id="machine">
+          <div class="sign" id="machineSign">메뉴 캡슐 대기중</div>
+          <div class="window" aria-hidden="true">
+            <div class="capsules">
+              <div class="capsule">🍜</div>
+              <div class="capsule">🍚</div>
+              <div class="capsule">🍕</div>
+              <div class="capsule">🍣</div>
+              <div class="capsule">🥘</div>
+              <div class="capsule">🥗</div>
+            </div>
+            <div class="glass-shine"></div>
+          </div>
+          <div class="dial" aria-hidden="true"></div>
+          <div class="door" aria-hidden="true"></div>
+          <div class="prize" id="prize">무엇이 나올까요?</div>
+        </div>
+
+        <div class="lever-panel">
+          <div class="lever-slot" aria-hidden="true">
+            <div class="lever" id="lever"></div>
+          </div>
+          <button class="draw-button" id="drawButton" type="button" title="뽑기">↯</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <section class="control-box result-box" aria-live="polite">
+        <p class="eyebrow">방금 나온 메뉴</p>
+        <p class="result" id="resultText">아직 안 뽑았어요</p>
+        <p class="subtext" id="resultSubtext">버튼을 누르면 캡슐이 흔들리고 하나가 톡 떨어집니다.</p>
+      </section>
+
+      <section class="control-box">
+        <p class="eyebrow">후보 메뉴</p>
+        <form class="add-row" id="foodForm">
+          <input class="food-input" id="foodInput" type="text" maxlength="18" placeholder="예: 제육볶음" aria-label="추가할 메뉴">
+          <button class="icon-button" type="submit" title="메뉴 추가">+</button>
+        </form>
+        <div class="food-list" id="foodList" aria-label="메뉴 후보 목록"></div>
+        <div class="quick-row">
+          <button class="quick-button" type="button" data-preset="comfort">든든하게</button>
+          <button class="quick-button" type="button" data-preset="light">가볍게</button>
+          <button class="quick-button" type="button" data-preset="delivery">배달각</button>
+        </div>
+      </section>
+
+      <p class="footer-note">후보는 브라우저에 저장됩니다. 내일도 고민이 찾아오면 그대로 다시 돌릴 수 있어요.</p>
+    </aside>
+  </main>
+
+  <script>
+    const defaultFoods = ["김치찌개", "초밥", "마라탕", "돈까스", "비빔밥", "파스타", "제육볶음", "쌀국수"];
+    const presets = {
+      comfort: ["김치찌개", "부대찌개", "제육볶음", "순두부찌개", "갈비탕"],
+      light: ["샐러드", "포케", "쌀국수", "메밀국수", "월남쌈"],
+      delivery: ["치킨", "피자", "떡볶이", "족발", "마라탕"]
+    };
+
+    const machine = document.querySelector("#machine");
+    const machineSign = document.querySelector("#machineSign");
+    const lever = document.querySelector("#lever");
+    const drawButton = document.querySelector("#drawButton");
+    const prize = document.querySelector("#prize");
+    const resultText = document.querySelector("#resultText");
+    const resultSubtext = document.querySelector("#resultSubtext");
+    const foodForm = document.querySelector("#foodForm");
+    const foodInput = document.querySelector("#foodInput");
+    const foodList = document.querySelector("#foodList");
+    const dateChip = document.querySelector("#dateChip");
+    const storageKey = "dinner-draw-foods";
+
+    let foods = loadFoods();
+    let running = false;
+
+    dateChip.textContent = new Intl.DateTimeFormat("ko-KR", {
+      month: "long",
+      day: "numeric",
+      weekday: "short"
+    }).format(new Date());
+
+    renderFoods();
+
+    drawButton.addEventListener("click", drawDinner);
+    foodForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      addFood(foodInput.value);
+      foodInput.value = "";
+      foodInput.focus();
+    });
+
+    document.querySelectorAll("[data-preset]").forEach((button) => {
+      button.addEventListener("click", () => {
+        presets[button.dataset.preset].forEach(addFood);
+      });
+    });
+
+    function loadFoods() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey));
+        return Array.isArray(saved) && saved.length ? saved : [...defaultFoods];
+      } catch {
+        return [...defaultFoods];
+      }
+    }
+
+    function saveFoods() {
+      localStorage.setItem(storageKey, JSON.stringify(foods));
+    }
+
+    function addFood(value) {
+      const food = value.trim();
+      if (!food || foods.some((item) => item === food)) return;
+      foods.push(food);
+      saveFoods();
+      renderFoods();
+    }
+
+    function removeFood(food) {
+      foods = foods.filter((item) => item !== food);
+      saveFoods();
+      renderFoods();
+    }
+
+    function renderFoods() {
+      foodList.innerHTML = "";
+      foods.forEach((food) => {
+        const chip = document.createElement("div");
+        chip.className = "food-chip";
+
+        const label = document.createElement("span");
+        label.textContent = food;
+
+        const removeButton = document.createElement("button");
+        removeButton.className = "remove";
+        removeButton.type = "button";
+        removeButton.title = `${food} 삭제`;
+        removeButton.textContent = "×";
+        removeButton.addEventListener("click", () => removeFood(food));
+
+        chip.append(label, removeButton);
+        foodList.append(chip);
+      });
+
+      machineSign.textContent = foods.length ? `${foods.length}개 메뉴 장전` : "후보를 넣어주세요";
+      drawButton.disabled = !foods.length;
+    }
+
+    function drawDinner() {
+      if (running || !foods.length) return;
+
+      running = true;
+      machine.classList.add("shaking");
+      lever.classList.add("pulled");
+      drawButton.classList.add("running");
+      prize.classList.remove("show");
+      resultText.textContent = "돌아가는 중...";
+      resultSubtext.textContent = "오늘의 위대한 결정을 기계에게 맡기는 중입니다.";
+
+      const spins = 12 + Math.floor(Math.random() * 8);
+      let count = 0;
+      const ticker = setInterval(() => {
+        const sample = foods[Math.floor(Math.random() * foods.length)];
+        machineSign.textContent = sample;
+        prize.textContent = sample;
+        count += 1;
+
+        if (count >= spins) {
+          clearInterval(ticker);
+          finishDraw();
+        }
+      }, 95);
+    }
+
+    function finishDraw() {
+      const chosen = foods[Math.floor(Math.random() * foods.length)];
+      machineSign.textContent = "오늘은 이거!";
+      prize.textContent = chosen;
+      resultText.textContent = chosen;
+      resultSubtext.textContent = makeVerdict(chosen);
+      prize.classList.add("show");
+      machine.classList.remove("shaking");
+
+      setTimeout(() => {
+        lever.classList.remove("pulled");
+        drawButton.classList.remove("running");
+        running = false;
+      }, 420);
+    }
+
+    function makeVerdict(food) {
+      const lines = [
+        `${food}, 이미 마음속으로는 정답이었을지도요.`,
+        `${food} 좋네요. 오늘 저녁의 방향이 정해졌습니다.`,
+        `기계가 골랐으니 갈등은 여기서 종료입니다.`,
+        `오늘의 캡슐은 ${food}. 이제 주문 또는 출발만 남았어요.`
+      ];
+      return lines[Math.floor(Math.random() * lines.length)];
+    }
+  </script>
+</body>
+</html>
