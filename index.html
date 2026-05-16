@@ -162,23 +162,67 @@
       height: 82px;
       border: 4px solid var(--ink);
       border-radius: 50%;
-      background: linear-gradient(180deg, var(--cap-a) 0 48%, rgba(255, 255, 255, 0.75) 48% 52%, var(--cap-b) 52% 100%);
-      box-shadow: inset -8px -10px rgba(0, 0, 0, 0.08);
+      background:
+        radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.9) 0 12%, transparent 13%),
+        linear-gradient(145deg, var(--cap-a) 0 47%, rgba(255, 255, 255, 0.82) 47% 53%, var(--cap-b) 53% 100%);
+      box-shadow:
+        inset -8px -10px rgba(0, 0, 0, 0.08),
+        0 8px 0 rgba(30, 37, 43, 0.08);
       color: var(--ink);
-      font-size: 1.9rem;
+      font-size: 1.65rem;
       transform: translate(var(--x), var(--y)) rotate(var(--r));
-      transition: transform 0.2s ease;
+      animation: floaty var(--idle, 3.2s) ease-in-out infinite;
+      animation-delay: var(--delay, 0s);
+      will-change: transform;
     }
 
-    .capsule:nth-child(1) { --x: 7%; --y: 22px; --r: -16deg; --cap-a: #f07167; --cap-b: #ffd166; }
-    .capsule:nth-child(2) { --x: 35%; --y: 38px; --r: 11deg; --cap-a: #52b69a; --cap-b: #fefae0; }
-    .capsule:nth-child(3) { --x: 66%; --y: 18px; --r: 21deg; --cap-a: #577590; --cap-b: #f9c74f; }
-    .capsule:nth-child(4) { --x: 18%; --y: 142px; --r: 8deg; --cap-a: #90be6d; --cap-b: #fff1e6; }
-    .capsule:nth-child(5) { --x: 50%; --y: 132px; --r: -18deg; --cap-a: #f9844a; --cap-b: #caffbf; }
-    .capsule:nth-child(6) { --x: 74%; --y: 140px; --r: 12deg; --cap-a: #43aa8b; --cap-b: #ffd6a5; }
+    .capsule::before {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 12px;
+      left: 19px;
+      top: 16px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.78);
+      transform: rotate(-25deg);
+    }
+
+    .capsule::after {
+      content: "•  •";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 13px;
+      color: rgba(30, 37, 43, 0.76);
+      font-size: 0.9rem;
+      font-weight: 900;
+      text-align: center;
+      text-shadow: 0 11px 0 rgba(240, 113, 103, 0.42);
+    }
+
+    .capsule span {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border: 2px solid rgba(30, 37, 43, 0.12);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.48);
+      transform: translateY(-5px);
+    }
+
+    .capsule:nth-child(1) { --x: 7%; --y: 22px; --r: -16deg; --cap-a: #ff8a80; --cap-b: #ffd166; --dx-a: 42px; --dy-a: -48px; --spin-a: 58deg; --dx-b: -21px; --dy-b: 17px; --spin-b: -32deg; --dx-c: 13px; --dy-c: -26px; --spin-c: 20deg; --dur: .36s; --idle: 3.1s; --delay: -.2s; }
+    .capsule:nth-child(2) { --x: 35%; --y: 38px; --r: 11deg; --cap-a: #65d6ad; --cap-b: #fff1a8; --dx-a: -38px; --dy-a: -34px; --spin-a: -76deg; --dx-b: 19px; --dy-b: 12px; --spin-b: 42deg; --dx-c: -12px; --dy-c: -19px; --spin-c: -27deg; --dur: .31s; --idle: 2.8s; --delay: -.8s; }
+    .capsule:nth-child(3) { --x: 66%; --y: 18px; --r: 21deg; --cap-a: #82aaff; --cap-b: #f9c74f; --dx-a: -54px; --dy-a: -56px; --spin-a: 94deg; --dx-b: 27px; --dy-b: 20px; --spin-b: -52deg; --dx-c: -17px; --dy-c: -31px; --spin-c: 33deg; --dur: .34s; --idle: 3.4s; --delay: -1.1s; }
+    .capsule:nth-child(4) { --x: 18%; --y: 142px; --r: 8deg; --cap-a: #b6e880; --cap-b: #fff1e6; --dx-a: 58px; --dy-a: 42px; --spin-a: -64deg; --dx-b: -29px; --dy-b: -15px; --spin-b: 35deg; --dx-c: 19px; --dy-c: 23px; --spin-c: -22deg; --dur: .29s; --idle: 3s; --delay: -.5s; }
+    .capsule:nth-child(5) { --x: 50%; --y: 132px; --r: -18deg; --cap-a: #ffaf70; --cap-b: #caffbf; --dx-a: -34px; --dy-a: 52px; --spin-a: 83deg; --dx-b: 17px; --dy-b: -18px; --spin-b: -46deg; --dx-c: -11px; --dy-c: 29px; --spin-c: 29deg; --dur: .33s; --idle: 2.7s; --delay: -1.5s; }
+    .capsule:nth-child(6) { --x: 74%; --y: 140px; --r: 12deg; --cap-a: #77ddc6; --cap-b: #ffd6a5; --dx-a: -62px; --dy-a: 38px; --spin-a: -88deg; --dx-b: 31px; --dy-b: -13px; --spin-b: 49deg; --dx-c: -20px; --dy-c: 21px; --spin-c: -31deg; --dur: .3s; --idle: 3.3s; --delay: -1.8s; }
 
     .machine.shaking .capsule {
-      animation: rattle 0.26s linear infinite;
+      animation: capsule-rumble var(--dur) cubic-bezier(.25, .8, .4, 1) infinite;
     }
 
     .dial {
@@ -474,12 +518,31 @@
       line-height: 1.45;
     }
 
-    @keyframes rattle {
-      0% { margin-left: 0; margin-top: 0; }
-      25% { margin-left: 7px; margin-top: -5px; }
-      50% { margin-left: -4px; margin-top: 5px; }
-      75% { margin-left: 5px; margin-top: 3px; }
-      100% { margin-left: 0; margin-top: 0; }
+    @keyframes floaty {
+      0%, 100% {
+        transform: translate(var(--x), var(--y)) rotate(var(--r));
+      }
+      50% {
+        transform: translate(var(--x), calc(var(--y) - 9px)) rotate(calc(var(--r) + 7deg));
+      }
+    }
+
+    @keyframes capsule-rumble {
+      0% {
+        transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1);
+      }
+      22% {
+        transform: translate(calc(var(--x) + var(--dx-a)), calc(var(--y) + var(--dy-a))) rotate(calc(var(--r) + var(--spin-a))) scale(1.04);
+      }
+      45% {
+        transform: translate(calc(var(--x) + var(--dx-b)), calc(var(--y) + var(--dy-b))) rotate(calc(var(--r) + var(--spin-b))) scale(.98);
+      }
+      70% {
+        transform: translate(calc(var(--x) + var(--dx-c)), calc(var(--y) + var(--dy-c))) rotate(calc(var(--r) + var(--spin-c))) scale(1.03);
+      }
+      100% {
+        transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1);
+      }
     }
 
     @media (max-width: 880px) {
@@ -596,12 +659,12 @@
           <div class="sign" id="machineSign">메뉴 캡슐 대기중</div>
           <div class="window" aria-hidden="true">
             <div class="capsules">
-              <div class="capsule">🍜</div>
-              <div class="capsule">🍚</div>
-              <div class="capsule">🍕</div>
-              <div class="capsule">🍣</div>
-              <div class="capsule">🥘</div>
-              <div class="capsule">🥗</div>
+              <div class="capsule"><span>🍜</span></div>
+              <div class="capsule"><span>🍚</span></div>
+              <div class="capsule"><span>🍕</span></div>
+              <div class="capsule"><span>🍣</span></div>
+              <div class="capsule"><span>🥘</span></div>
+              <div class="capsule"><span>🥗</span></div>
             </div>
             <div class="glass-shine"></div>
           </div>
